@@ -39,9 +39,9 @@ let T = new Twit({
   timeout_ms: 60 * 1000,  // optional HTTP request timeout to apply to all requests.
   strictSSL: true,     // optional - requires SSL certificates to be valid.
 })
-let tweetTX = async (quantity, reason, txid) => {
+let tweetTX = async (from, quantity, reason, txid) => {
   quantity = quantity.split(" ")
-  let theTweet = `${quantity[0]} #${quantity[1]} deposited to #REX for ${reason}! https://bloks.io/transaction/${txid}`
+  let theTweet = `${from} paid ${quantity[0]} #${quantity[1]} to #REX for ${reason}! https://bloks.io/transaction/${txid}`
   console.log(theTweet)
   // only tweet over if tx is over 100 EOS.
   if (Boolean(parseFloat(quantity[0]) >= minEOSToTweet)) {
@@ -83,6 +83,7 @@ module.exports.monitor = async (event) => {
         "accounts": "eosio.token",
         "action_name": "transfer",
         "receiver": "eosio.rex",
+        "with_inline_traces": true,
         "with_dtrxops": true
       }
     }));
@@ -119,18 +120,32 @@ module.exports.monitor = async (event) => {
       console.log(data)
       let txTrace = data.data.trace
       let action = txTrace.act.data
-      let { from, quantity } = action
+      console.log("logged action from")
+      console.log(action)
+      let { from } = action
       if (from === "eosio.ramfee") {
         // potential ram tweet.
-        tweetTX(quantity, 'RAM trading fees', data.data.trx_id)
+        let { quantity } = action
+        tweetTX(from, quantity, 'RAM trading fees', data.data.trx_id)
       }
 
       if (from === "eosio.names") {
         // potential name tweet.
-        tweetTX(quantity, 'premium account', data.data.trx_id)
+        let { quantity } = action
+        tweetTX(from, quantity, 'premium account', data.data.trx_id)
       }
 
+      if (data.req_id === "rentcpu") {
+        // potential CPU tweet.
+        let { loan_payment } = action
+        tweetTX(from, loan_payment, 'CPU Rental', data.data.trx_id)
+      }
 
+      if (data.req_id === "rentnet") {
+        // potential CPU tweet.
+        let { loan_payment } = action
+        tweetTX(from, loan_payment, 'NET Rental', data.data.trx_id)
+      }
 
     } catch (e) {
       console.log("Could not parse action.")
