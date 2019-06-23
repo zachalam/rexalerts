@@ -41,7 +41,7 @@ let T = new Twit({
 })
 let tweetTX = async (from, quantity, reason, txid) => {
   quantity = quantity.split(" ")
-  let theTweet = `${from} paid ${quantity[0]} #${quantity[1]} to #REX for ${reason}! https://bloks.io/transaction/${txid}`
+  let theTweet = `${from} paid ${quantity[0]} #${quantity[1]} to #REX for ${reason}! https://bloks.io/transaction/${txid}#traces`
   console.log(theTweet)
   // only tweet over if tx is over 100 EOS.
   if (Boolean(parseFloat(quantity[0]) >= minEOSToTweet)) {
@@ -126,25 +126,25 @@ module.exports.monitor = async (event) => {
       if (from === "eosio.ramfee") {
         // potential ram tweet.
         let { quantity } = action
-        tweetTX(from, quantity, 'RAM trading fees', data.data.trx_id)
+        tweetTX(from, quantity, '#RAM trading fees', data.data.trx_id)
       }
 
       if (from === "eosio.names") {
         // potential name tweet.
         let { quantity } = action
-        tweetTX(from, quantity, 'premium account', data.data.trx_id)
+        tweetTX(from, quantity, 'a premium #account', data.data.trx_id)
       }
 
       if (data.req_id === "rentcpu") {
         // potential CPU tweet.
         let { loan_payment } = action
-        tweetTX(from, loan_payment, 'CPU Rental', data.data.trx_id)
+        tweetTX(from, loan_payment, '#CPU Rental', data.data.trx_id)
       }
 
       if (data.req_id === "rentnet") {
         // potential CPU tweet.
         let { loan_payment } = action
-        tweetTX(from, loan_payment, 'NET Rental', data.data.trx_id)
+        tweetTX(from, loan_payment, '#NET Rental', data.data.trx_id)
       }
 
     } catch (e) {
